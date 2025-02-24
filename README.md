@@ -14,9 +14,9 @@ It is built using the c programming language and uses sqlite3 as a dependencie f
 - [ ] Searching the database for title (grep search)
 - [ ] Input parsing
 - [ ] Fancy ncurses ui
-    - [ ] Scrollable output field
-    - [ ] Input field
-    - [ ] Mouse controls
+  - [ ] Scrollable output field
+  - [ ] Input field
+  - [ ] Mouse controls
 - [ ] Only use commands from the command line (cmd arg parsing)
 
 ## ## Shortterm goals
@@ -24,3 +24,5 @@ It is built using the c programming language and uses sqlite3 as a dependencie f
 - [ ] Save database in generic location like `.config/kmark/bookmarks.md`
 - [ ] Better error handling
 - [ ] Restructure database setup
+- [ ] sqlite3 wrapper for ease of use
+- [x] Better input handling (input error handling)

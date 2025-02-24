@@ -1,3 +1,4 @@
+#include "input.h"
 #include "typedefs.h"
 #include <sqlite3.h>
 #include <stdio.h>
@@ -9,6 +10,14 @@ typedef enum {
   BM_BLOG,
   BM_VIDEO,
 } bookMarkTag;
+
+typedef enum {
+  BM_CREATE = 1,
+  BM_LIST,
+  BM_SEARCH_BY_TAG,
+  BM_DELETE,
+  BM_EXIT
+} choice;
 
 struct date_t {
   u8 D;
@@ -85,6 +94,7 @@ int addBookmark(sqlite3 *db, struct bookmark_t bookmark) {
 }
 
 int callback(void *data, int argc, char **argv, char **col_name) {
+  (void)data;
   printf("Found bookmark:\n");
 
   for (int i = 0; i < argc; i++) {
@@ -149,6 +159,26 @@ int deleteBookmark(sqlite3 *db, int id) {
   return rc;
 }
 
+void creatBookmark(sqlite3 *db, struct bookmark_t *bm) {
+  printf("Enter title: ");
+  getLineInput(bm->title, sizeof(bm->title));
+  bm->title[strcspn(bm->title, "\n")] = 0;
+
+  printf("Enter URL: ");
+  getLineInput(bm->url, sizeof(bm->url));
+  bm->url[strcspn(bm->url, "\n")] = 0;
+
+  printf("Enter tags (comma separated): ");
+  getLineInput(bm->tags, sizeof(bm->tags));
+  bm->tags[strcspn(bm->tags, "\n")] = 0;
+
+  printf("Enter description: ");
+  getLineInput(bm->description, sizeof(bm->description));
+  bm->description[strcspn(bm->description, "\n")] = 0;
+
+  addBookmark(db, *bm);
+}
+
 void printMenu() {
   printf("\nBookmark Manager\n");
   printf("1. Add bookmark\n");
@@ -173,60 +203,49 @@ int main(int argc, char **argv) {
   int choice;
   while (1) {
     printMenu();
-    scanf("%d", &choice);
+    getIntInput(&choice);
     getchar();
 
     struct bookmark_t bm;
     char tag[100];
     int id;
 
+    printf(COL_CYAN);
+    printf("\n");
     switch (choice) {
-    case 1:
-      printf("Enter title: ");
-      fgets(bm.title, sizeof(bm.title), stdin);
-      bm.title[strcspn(bm.title, "\n")] = 0;
-
-      printf("Enter URL: ");
-      fgets(bm.url, sizeof(bm.url), stdin);
-      bm.url[strcspn(bm.url, "\n")] = 0;
-
-      printf("Enter tags (comma separated): ");
-      fgets(bm.tags, sizeof(bm.tags), stdin);
-      bm.tags[strcspn(bm.tags, "\n")] = 0;
-
-      printf("Enter description: ");
-      fgets(bm.description, sizeof(bm.description), stdin);
-      bm.description[strcspn(bm.description, "\n")] = 0;
-
-      addBookmark(db, bm);
+    case BM_CREATE:
+      creatBookmark(db, &bm);
       break;
 
-    case 2:
+    case BM_LIST:
       listAllBookmarks(db);
       break;
 
-    case 3:
+    case BM_SEARCH_BY_TAG:
       printf("Enter tag to search: ");
-      fgets(tag, sizeof(tag), stdin);
+      getLineInput(tag, sizeof(tag));
       tag[strcspn(tag, "\n")] = 0;
 
       searchByTag(db, tag);
       break;
 
-    case 4:
+    case BM_DELETE:
       printf("Enter bookmark ID to delete: ");
-      scanf("%d", &id);
+      getIntInput(&id);
       getchar();
 
       deleteBookmark(db, id);
       break;
-    case 5:
+
+    case BM_EXIT:
       sqlite3_close(db);
       printf("Goodby!\n");
       return 0;
+
     default:
       printf("Invalid choice. Please try again.\n");
     }
+    printf(COL_RESET);
   }
 
   return 0;
