@@ -1,5 +1,6 @@
 #include "input.h"
 #include "typedefs.h"
+#include <getopt.h>
 #include <sqlite3.h>
 #include <stdio.h>
 #include <string.h>
@@ -12,7 +13,7 @@ typedef enum {
 } bookMarkTag;
 
 typedef enum {
-  BM_CREATE = 1,
+  BM_ADD = 1,
   BM_LIST,
   BM_SEARCH_BY_TAG,
   BM_DELETE,
@@ -190,14 +191,25 @@ void printMenu() {
 }
 
 int main(int argc, char **argv) {
-  (void)argc;
-  (void)argv;
-
   sqlite3 *db;
   char db_file[] = "bookmarks.db";
 
   if (initializeDb(&db, db_file) != SQLITE_OK) {
     return 1;
+  }
+
+  int option;
+  while ((option = getopt(argc, argv, "al")) != -1) {
+    switch (option) {
+    case 'a': {
+      struct bookmark_t bm;
+      creatBookmark(db, &bm);
+      return 0;
+    } break;
+    case 'l':
+      listAllBookmarks(db);
+      return 0;
+    }
   }
 
   int choice;
@@ -213,7 +225,7 @@ int main(int argc, char **argv) {
     printf(COL_CYAN);
     printf("\n");
     switch (choice) {
-    case BM_CREATE:
+    case BM_ADD:
       creatBookmark(db, &bm);
       break;
 
