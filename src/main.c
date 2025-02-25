@@ -3,6 +3,7 @@
 #include "io-kmark.h"
 #include "typedefs.h"
 #include <getopt.h>
+#include <ncurses.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -65,7 +66,17 @@ void commandLineParser(int argc, char **argv) {
   }
 }
 
-int main(int argc, char **argv) {
+int main() {
+  initscr();
+  raw();
+  keypad(stdscr, TRUE);
+
+  getch();
+  endwin();
+  exit(EXIT_SUCCESS);
+}
+
+int test(int argc, char **argv) {
   ASSERT(init(), "%s: failed to init kmark", argv[0]);
   atexit(shutdown);
   commandLineParser(argc, argv);
