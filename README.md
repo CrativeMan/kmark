@@ -20,7 +20,7 @@ It is built using the c programming language and uses sqlite3 as a dependencie f
 
 ## ## Shortterm goals
 
-- [ ] Save database in generic location like `.config/kmark/bookmarks.md`
+- [x] Save database in generic location like `.config/kmark/bookmarks.md`
 - [x] Only use commands from the command line (cmd arg parsing)
 - [ ] Better error handling
 - [ ] Restructure database setup

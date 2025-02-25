@@ -1,39 +1,16 @@
-#include "input.h"
+#include "defines.h"
+#include "io-kmark.h"
 #include "typedefs.h"
 #include <getopt.h>
-#include <sqlite3.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-typedef enum {
-  BM_NO_TAG = 0,
-  BM_WEBSITE,
-  BM_BLOG,
-  BM_VIDEO,
-} bookMarkTag;
+static struct global_t global;
 
-typedef enum {
-  BM_ADD = 1,
-  BM_LIST,
-  BM_SEARCH_BY_TAG,
-  BM_DELETE,
-  BM_EXIT
-} choice;
-
-struct date_t {
-  u8 D;
-  u8 M;
-  i16 Y;
-};
-
-struct bookmark_t {
-  char title[100];
-  char url[500];
-  char description[200];
-  char tags[200];
-  struct date_t date;
-  i8 nTags;
-};
+/* ----------------------------------------------------
+  Database interaction
+ ----------------------------------------------------*/
 
 int initializeDb(sqlite3 **db, const char *db_file) {
   int rc = sqlite3_open(db_file, db);
@@ -180,6 +157,10 @@ void creatBookmark(sqlite3 *db, struct bookmark_t *bm) {
   addBookmark(db, *bm);
 }
 
+/* ----------------------------------------------------
+  TUI
+ ----------------------------------------------------*/
+
 void printMenu() {
   printf("\nBookmark Manager\n");
   printf("1. Add bookmark\n");
@@ -190,25 +171,47 @@ void printMenu() {
   printf("Enter your choice: ");
 }
 
-int main(int argc, char **argv) {
-  sqlite3 *db;
-  char db_file[] = "bookmarks.db";
+/* ----------------------------------------------------
+  Initilaization and Shutdown
+ ----------------------------------------------------*/
 
-  if (initializeDb(&db, db_file) != SQLITE_OK) {
+int init() {
+  checkOrCreateConfigFolderLinux(&global);
+
+  if (initializeDb(&global.db, global.dirs.db) != SQLITE_OK)
     return 1;
-  }
 
+  return 0;
+}
+
+void shutdown() {
+  free(global.dirs.config);
+  free(global.dirs.db);
+}
+
+int main(int argc, char **argv) {
+  ASSERT(init(), "%s: failed to init kmark", argv[0]);
   int option;
-  while ((option = getopt(argc, argv, "al")) != -1) {
+  while ((option = getopt(argc, argv, "ali")) != -1) {
     switch (option) {
     case 'a': {
       struct bookmark_t bm;
-      creatBookmark(db, &bm);
+      creatBookmark(global.db, &bm);
+      shutdown();
       return 0;
-    } break;
-    case 'l':
-      listAllBookmarks(db);
+    }
+    case 'l': {
+      listAllBookmarks(global.db);
+      shutdown();
       return 0;
+    }
+    case 'i': {
+      printf("Home dir: %s\n", global.dirs.home);
+      printf("Config dir: %s\n", global.dirs.config);
+      printf("Database location: %s\n", global.dirs.db);
+      shutdown();
+      return 0;
+    }
     }
   }
 
@@ -226,11 +229,11 @@ int main(int argc, char **argv) {
     printf("\n");
     switch (choice) {
     case BM_ADD:
-      creatBookmark(db, &bm);
+      creatBookmark(global.db, &bm);
       break;
 
     case BM_LIST:
-      listAllBookmarks(db);
+      listAllBookmarks(global.db);
       break;
 
     case BM_SEARCH_BY_TAG:
@@ -238,7 +241,7 @@ int main(int argc, char **argv) {
       getLineInput(tag, sizeof(tag));
       tag[strcspn(tag, "\n")] = 0;
 
-      searchByTag(db, tag);
+      searchByTag(global.db, tag);
       break;
 
     case BM_DELETE:
@@ -246,11 +249,11 @@ int main(int argc, char **argv) {
       getIntInput(&id);
       getchar();
 
-      deleteBookmark(db, id);
+      deleteBookmark(global.db, id);
       break;
 
     case BM_EXIT:
-      sqlite3_close(db);
+      sqlite3_close(global.db);
       printf("Goodby!\n");
       return 0;
 
