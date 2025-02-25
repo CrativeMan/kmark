@@ -6,7 +6,7 @@ OBJDIR = obj
 TARGETDIR = bin
 SRCS = $(wildcard $(SRCDIR)/*.c)
 OBJS = $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCS))
-TARGETMAIN = $(TARGETDIR)/bmc
+TARGETMAIN = $(TARGETDIR)/kmark
 
 all: $(TARGETMAIN)
 
