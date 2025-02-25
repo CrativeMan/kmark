@@ -50,10 +50,10 @@ void getIntInput(int *value) {
 int checkOrCreateConfigFolderLinux(struct global_t *global) {
   struct passwd *pw = getpwuid(getuid());
   const char *homedir = pw->pw_dir;
-  global->dirs.home = homedir;
+  global->dir.home = homedir;
   char *configdir = concat(homedir, "/.config/kmark");
-  global->dirs.config = malloc(strlen(configdir) + 1);
-  strcpy(global->dirs.config, configdir);
+  global->dir.config = malloc(strlen(configdir) + 1);
+  strcpy(global->dir.config, configdir);
 
   struct stat stats;
   stat(configdir, &stats);
@@ -67,9 +67,9 @@ int checkOrCreateConfigFolderLinux(struct global_t *global) {
     mkdir(configdir, 0700);
   }
 
-  char *location = concat(global->dirs.config, "/bookmarks.db");
-  global->dirs.db = malloc(strlen(location) + 1);
-  strcpy(global->dirs.db, location);
+  char *location = concat(global->dir.config, "/bookmarks.db");
+  global->dir.db = malloc(strlen(location) + 1);
+  strcpy(global->dir.db, location);
 
   free(configdir);
   free(location);

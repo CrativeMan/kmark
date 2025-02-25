@@ -1,7 +1,9 @@
 #pragma once
 
+#include "tui.h"
 #include "typedefs.h"
 #include <sqlite3.h>
+#include <stdbool.h>
 
 typedef enum {
   BM_NO_TAG = 0,
@@ -33,11 +35,21 @@ struct bookmark_t {
   i8 nTags;
 };
 
+struct dir {
+  const char *home;
+  char *config;
+  char *db;
+};
+
+struct term {
+  u16 cols;
+  u16 rows;
+};
+
 struct global_t {
   sqlite3 *db;
-  struct dirs {
-    const char *home;
-    char *config;
-    char *db;
-  } dirs;
+  struct window_t *windows[1];
+  struct dir dir;
+  struct term term;
+  bool close;
 };

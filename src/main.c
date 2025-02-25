@@ -1,15 +1,15 @@
 #include "database.h"
 #include "defines.h"
 #include "io-kmark.h"
+#include "tui.h"
 #include "typedefs.h"
 #include <getopt.h>
 #include <ncurses.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-static struct global_t global;
+static struct global_t *global;
 
 // ----------------------------------------------------
 // TUI
@@ -28,18 +28,26 @@ void printMenu() {
 // Initilaization and Shutdown
 // ----------------------------------------------------
 bool init() {
-  checkOrCreateConfigFolderLinux(&global);
+  checkOrCreateConfigFolderLinux(global);
 
-  if (initializeDb(&global.db, global.dirs.db) != SQLITE_OK) {
+  if (initializeDb(&global->db, global->dir.db) != SQLITE_OK) {
     return false;
   }
+
+  global->close = false;
 
   return true;
 }
 
 void shutdown() {
-  free(global.dirs.config);
-  free(global.dirs.db);
+  if (global->dir.config) {
+    free(global->dir.config);
+    global->dir.config = NULL;
+  }
+  if (global->dir.db) {
+    free(global->dir.db);
+    global->dir.db = NULL;
+  }
   printf("Goodbye :)\n");
 }
 
@@ -49,30 +57,39 @@ void commandLineParser(int argc, char **argv) {
     switch (option) {
     case 'a': {
       struct bookmark_t bm;
-      creatBookmark(global.db, &bm);
+      creatBookmark(global->db, &bm);
       exit(EXIT_SUCCESS);
     }
     case 'l': {
-      listAllBookmarks(global.db);
+      listAllBookmarks(global->db);
       exit(EXIT_SUCCESS);
     }
     case 'i': {
-      printf("Home dir: %s\n", global.dirs.home);
-      printf("Config dir: %s\n", global.dirs.config);
-      printf("Database location: %s\n", global.dirs.db);
+      printf("Home dir: %s\n", global->dir.home);
+      printf("Config dir: %s\n", global->dir.config);
+      printf("Database location: %s\n", global->dir.db);
       exit(EXIT_SUCCESS);
     }
     }
   }
 }
 
-int main() {
-  initscr();
-  raw();
-  keypad(stdscr, TRUE);
+int main(int argc, char **argv) {
+  ASSERT(init(), "%s: failed to init kmark", argv[0]);
+  atexit(shutdown);
+  global->windows[0] = window_newWindow(1, 1, 100, 10);
+  window_changeContent(global->windows[0], "Hello, World!");
+  window_appendContent(global->windows[0], " Appended content");
+  tui_init(global);
 
-  getch();
-  endwin();
+  while (global->close == false) {
+    tui_render(global->windows, 1);
+    char ch = getch();
+    if (ch == 'q')
+      global->close = true;
+  }
+
+  tui_shutdown(global->windows, 1);
   exit(EXIT_SUCCESS);
 }
 
@@ -95,11 +112,11 @@ int test(int argc, char **argv) {
     printf("\n");
     switch (choice) {
     case BM_ADD:
-      creatBookmark(global.db, &bm);
+      creatBookmark(global->db, &bm);
       break;
 
     case BM_LIST:
-      listAllBookmarks(global.db);
+      listAllBookmarks(global->db);
       break;
 
     case BM_SEARCH_BY_TAG:
@@ -107,7 +124,7 @@ int test(int argc, char **argv) {
       getLineInput(tag, sizeof(tag));
       tag[strcspn(tag, "\n")] = 0;
 
-      searchByTag(global.db, tag);
+      searchByTag(global->db, tag);
       break;
 
     case BM_DELETE:
@@ -115,11 +132,11 @@ int test(int argc, char **argv) {
       getIntInput(&id);
       getchar();
 
-      deleteBookmark(global.db, id);
+      deleteBookmark(global->db, id);
       break;
 
     case BM_EXIT:
-      sqlite3_close(global.db);
+      sqlite3_close(global->db);
       exit(EXIT_SUCCESS);
 
     default:
