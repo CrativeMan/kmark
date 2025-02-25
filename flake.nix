@@ -9,6 +9,7 @@
       forEachSupportedSystem = f: nixpkgs.lib.genAttrs supportedSystems (system: f {
         pkgs = import nixpkgs { inherit system; };
       });
+      pkgs = import nixpkgs { };
     in
     {
       devShells = forEachSupportedSystem ({ pkgs }: {
@@ -35,6 +36,32 @@
             ] ++ (if system == "aarch64-darwin" then [ ] else [ gdb ]);
           };
       });
+
+      packages = forEachSupportedSystem ({ pkgs }: {
+        default = pkgs.stdenv.mkDerivation {
+          pname = "kmark";
+          version = "1.0.0";
+
+          src = ./.;
+
+          buildInputs = with pkgs; [
+            sqlite
+            ncurses
+          ];
+
+          buildPhase = ''
+            make
+          '';
+
+          installPhase = ''
+            mkdir -p $out/bin
+            cp bin/kmark $out/bin/kmark
+            echo "Finished"
+          '';
+        };
+      });
     };
+
+    
 }
 

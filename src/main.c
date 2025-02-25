@@ -39,7 +39,7 @@ bool init() {
 void shutdown() {
   free(global.dirs.config);
   free(global.dirs.db);
-  printf("Goodbye\n");
+  printf("Goodbye :)\n");
 }
 
 void commandLineParser(int argc, char **argv) {
@@ -49,19 +49,16 @@ void commandLineParser(int argc, char **argv) {
     case 'a': {
       struct bookmark_t bm;
       creatBookmark(global.db, &bm);
-      shutdown();
       exit(EXIT_SUCCESS);
     }
     case 'l': {
       listAllBookmarks(global.db);
-      shutdown();
       exit(EXIT_SUCCESS);
     }
     case 'i': {
       printf("Home dir: %s\n", global.dirs.home);
       printf("Config dir: %s\n", global.dirs.config);
       printf("Database location: %s\n", global.dirs.db);
-      shutdown();
       exit(EXIT_SUCCESS);
     }
     }
@@ -112,7 +109,6 @@ int main(int argc, char **argv) {
 
     case BM_EXIT:
       sqlite3_close(global.db);
-      shutdown();
       exit(EXIT_SUCCESS);
 
     default:
@@ -121,5 +117,5 @@ int main(int argc, char **argv) {
     printf(COL_RESET);
   }
 
-  return 0;
+  exit(EXIT_SUCCESS);
 }
