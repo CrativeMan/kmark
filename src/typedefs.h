@@ -27,13 +27,13 @@ typedef int32_t i32;
 typedef int64_t i64;
 typedef size_t usize;
 
-/* Bool */
-typedef uint8_t t_bool;
-#define FALSE 0
-#define TRUE 1
-
 /* Vector */
 struct vec2i_t {
   i32 x, y;
 };
 typedef struct vec2i_t v2i;
+
+struct vec2f_t {
+  f32 x, y;
+};
+typedef struct vec2f_t v2f;
