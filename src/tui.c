@@ -8,8 +8,8 @@ void tui_init(struct global_t *global) {
   initscr();
   raw();
   keypad(stdscr, TRUE);
-  // global->term.rows = 10;
-  // global->term.cols = 10;
+  global->term.rows = LINES;
+  global->term.cols = COLS;
 }
 
 void tui_render(struct window_t *windows[], u8 nWindows) {

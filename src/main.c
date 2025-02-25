@@ -28,6 +28,8 @@ void printMenu() {
 // Initilaization and Shutdown
 // ----------------------------------------------------
 bool init() {
+  global = malloc(sizeof(struct global_t));
+  ASSERT(global != NULL, "failed to alloc global");
   checkOrCreateConfigFolderLinux(global);
 
   if (initializeDb(&global->db, global->dir.db) != SQLITE_OK) {
@@ -35,6 +37,8 @@ bool init() {
   }
 
   global->close = false;
+
+  tui_init(global);
 
   return true;
 }
@@ -77,10 +81,11 @@ void commandLineParser(int argc, char **argv) {
 int main(int argc, char **argv) {
   ASSERT(init(), "%s: failed to init kmark", argv[0]);
   atexit(shutdown);
-  global->windows[0] = window_newWindow(1, 1, 100, 10);
+
+  global->windows[0] =
+      window_newWindow(4, 2, global->term.cols - 9, global->term.rows - 12);
   window_changeContent(global->windows[0], "Hello, World!");
   window_appendContent(global->windows[0], " Appended content");
-  tui_init(global);
 
   while (global->close == false) {
     tui_render(global->windows, 1);

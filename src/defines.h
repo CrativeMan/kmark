@@ -1,6 +1,5 @@
 #pragma once
 
-#include "tui.h"
 #include "typedefs.h"
 #include <sqlite3.h>
 #include <stdbool.h>
